@@ -1,7 +1,6 @@
 use osta_lexer::tokens;
 
 use super::*;
-use crate::rules::stmt::*;
 
 pub fn if_stmt<'a>() -> impl Parser<'a> {
     do_parse! {
@@ -24,6 +23,7 @@ pub fn if_stmt<'a>() -> impl Parser<'a> {
 mod tests {
     use osta_ast::*;
     use osta_func::*;
+
     use crate::rules::tests::*;
 
     #[test]

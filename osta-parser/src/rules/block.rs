@@ -4,13 +4,13 @@ use super::*;
 use crate::rules::stmt::*;
 
 fn stmts_in_block<'a>() -> impl Parser<'a> {
-    do_parse! {
+    defer!(do_parse! {
         stmt_ref = stmt();
         next_ref = defer!(stmts_in_block()).optional();
         with_builder(move |mut builder| {
             builder.push_stmt(stmt_ref, next_ref)
         });
-    }
+    })
 }
 
 pub fn block<'a>() -> impl Parser<'a> {
