@@ -13,6 +13,7 @@ pub enum TokenKind {
     If,
     Else,
     Return,
+    Void,
 
     // Single character tokens
     Plus,
@@ -23,8 +24,11 @@ pub enum TokenKind {
     RParen,
     LBrace,
     RBrace,
+    LBracket,
+    RBracket,
     Eq,
     Bang,
+    QMark,
     Comma,
     Colon,
 

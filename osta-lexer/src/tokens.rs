@@ -31,6 +31,7 @@ emitter!(kw_while, keyword("while", TokenKind::While));
 emitter!(kw_if, keyword("if", TokenKind::If));
 emitter!(kw_else, keyword("else", TokenKind::Else));
 emitter!(kw_return, keyword("return", TokenKind::Return));
+emitter!(kw_void, keyword("void", TokenKind::Void));
 emitter!(integer, regex(&RE_INT, TokenKind::Int)
     .map_err(|err| TokenizerError {
         found: err.found,
@@ -45,6 +46,8 @@ emitter!(lparen, token("(", TokenKind::LParen));
 emitter!(rparen, token(")", TokenKind::RParen));
 emitter!(lbrace, token("{", TokenKind::LBrace));
 emitter!(rbrace, token("}", TokenKind::RBrace));
+emitter!(lbracket, token("[", TokenKind::LBracket));
+emitter!(rbracket, token("]", TokenKind::RBracket));
 emitter!(plus, token("+", TokenKind::Plus));
 emitter!(minus, token("-", TokenKind::Minus));
 emitter!(star, token("*", TokenKind::Star));
@@ -53,6 +56,7 @@ emitter!(colon, token(":", TokenKind::Colon));
 emitter!(comma, token(",", TokenKind::Comma));
 emitter!(eq, token("=", TokenKind::Eq));
 emitter!(bang, token("!", TokenKind::Bang));
+emitter!(qmark, token("?", TokenKind::QMark));
 emitter!(bin_op, plus()
     .or_else(|_| minus())
     .or_else(|_| star())

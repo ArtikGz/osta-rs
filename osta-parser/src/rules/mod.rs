@@ -10,6 +10,7 @@ mod expr;
 mod stmt;
 mod block;
 mod flow;
+mod root;
 
 pub use expr::*;
 pub use stmt::*;

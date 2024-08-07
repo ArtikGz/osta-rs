@@ -10,6 +10,10 @@ impl NodeRef {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DataRef(pub usize);
 
+impl DataRef {
+    pub const NULL: DataRef = DataRef(!0);
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NodeKind {
     IntegerLiteral(DataRef),
@@ -25,6 +29,13 @@ pub enum NodeKind {
     ReturnStmt { expr_ref: NodeRef },
     Block { first_stmt_ref: NodeRef },
     IfStmt { cond_ref: NodeRef, then_block_ref: NodeRef, else_block_ref: NodeRef },
+    Type(NodeRef),
+    ArrayType { child_ref: NodeRef, length_ref: NodeRef },
+    TypeModifier { child_ref: NodeRef, modifier_ref: DataRef },
+    ErrorType { child_ref: NodeRef, error_ref: NodeRef },
+    ParamDecl { type_ref: NodeRef, name_ref: NodeRef, next_ref: NodeRef },
+    FuncDecl { type_ref: NodeRef, name_ref: NodeRef, params_ref: NodeRef },
+    FuncDef { func_decl_ref: NodeRef, block_ref: NodeRef },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -223,6 +234,75 @@ impl<'a> AstBuilder<'a> {
         self.set_parent(cond_ref, node_ref);
         self.set_parent(then_block_ref, node_ref);
         if else_block_ref != NodeRef::NULL { self.set_parent(else_block_ref, node_ref); }
+
+        node_ref
+    }
+
+    pub fn push_type(&mut self, child_ref: NodeRef) -> NodeRef {
+        let node_ref = self.push_node(NodeKind::Type(child_ref));
+        if child_ref != NodeRef::NULL { self.set_parent(child_ref, node_ref); };
+
+        node_ref
+    }
+
+    pub fn push_type_modifier(&mut self, child_ref: NodeRef, token: Token<'a>) -> NodeRef {
+        debug_assert!(child_ref != NodeRef::NULL);
+
+        let modifier_ref = self.push_data(Data::Token(token));
+        let node_ref = self.push_node(NodeKind::TypeModifier { child_ref, modifier_ref });
+        self.set_parent(child_ref, node_ref);
+
+        node_ref
+    }
+
+    pub fn push_array_type(&mut self, child_ref: NodeRef, length_ref: NodeRef) -> NodeRef {
+        debug_assert!(child_ref != NodeRef::NULL && length_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::ArrayType { child_ref, length_ref });
+        self.set_parent(child_ref, node_ref);
+        self.set_parent(length_ref, node_ref);
+
+        node_ref
+    }
+
+    pub fn push_error_type(&mut self, child_ref: NodeRef, error_ref: NodeRef) -> NodeRef {
+        debug_assert!(child_ref != NodeRef::NULL && error_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::ErrorType { child_ref, error_ref });
+        self.set_parent(child_ref, node_ref);
+        self.set_parent(error_ref, node_ref);
+
+        node_ref
+    }
+
+    pub fn push_param_decl(&mut self, type_ref: NodeRef, name_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
+        debug_assert!(type_ref != NodeRef::NULL && name_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::ParamDecl { type_ref, name_ref, next_ref });
+        self.set_parent(type_ref, node_ref);
+        self.set_parent(name_ref, node_ref);
+        if next_ref != NodeRef::NULL { self.set_parent(next_ref, node_ref); }
+
+        node_ref
+    }
+
+    pub fn push_func_decl(&mut self, type_ref: NodeRef, name_ref: NodeRef, params_ref: NodeRef) -> NodeRef {
+        debug_assert!(type_ref != NodeRef::NULL && name_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::FuncDecl { type_ref, name_ref, params_ref });
+        self.set_parent(type_ref, node_ref);
+        self.set_parent(name_ref, node_ref);
+        if params_ref != NodeRef::NULL { self.set_parent(params_ref, node_ref); }
+
+        node_ref
+    }
+
+    pub fn push_func_def(&mut self, func_decl_ref: NodeRef, block_ref: NodeRef) -> NodeRef {
+        debug_assert!(func_decl_ref != NodeRef::NULL && block_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::FuncDef { func_decl_ref, block_ref });
+        self.set_parent(func_decl_ref, node_ref);
+        self.set_parent(block_ref, node_ref);
 
         node_ref
     }
