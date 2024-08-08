@@ -10,10 +10,12 @@ pub struct Tokenizer<'source> {
 
 impl<'source> Tokenizer<'source> {
     pub fn new(input: &str) -> Tokenizer {
-        Tokenizer {
+        let mut tokenizer = Tokenizer {
             lexer: TokenKind::lexer(input),
             token: None
-        }
+        };
+        tokenizer.next();
+        tokenizer
     }
 
     /// Advances the iterator and returns the next value.
@@ -57,7 +59,7 @@ mod tests {
     #[test]
     fn test_identifier() {
         let mut tokenizer = Tokenizer::new("hello @");
-        assert_eq!(tokenizer.next(), Some(Ok(Token {
+        assert_eq!(tokenizer.peek(), Some(Ok(Token {
             kind: TokenKind::Identifier,
             span: (0..5)
         })));
