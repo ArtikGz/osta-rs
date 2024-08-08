@@ -6,15 +6,15 @@ pub struct TokenizerError<'a> {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum TokenizerErrorKind<'a> {
-    // NOTE(cdecompilador): This kind of errors will appear like 
+    // NOTE(cdecompilador): This kind of error will appear like
     // expected: +, -, ;, ::, !
     ExpectedLiteral(&'a str),
 
-    // NOTE(johanvonelectrum): This kind of errors will appear like:
+    // NOTE(johanvonelectrum): This kind of error will appear like:
     // expected regex: [0-9]+
     ExpectedRegex(&'a str),
 
-    // NOTE(cdecompilador): This kind of errors will appear with an example:
+    // NOTE(cdecompilador): This kind of error will appear with an example:
     // expected keyword: if, while
     // ...example for if
     // ...example for while 
@@ -25,11 +25,11 @@ pub enum TokenizerErrorKind<'a> {
     /// identifier was expected to be a type, variable name, ...
     ExpectedIdentifier,
 
-    // NOTE(cdecompilador): This kind of erros will appear like:
+    // NOTE(cdecompilador): This kind of error will appear like:
     // expected integer
     ExpectedInt,
 
-    /// Unexpected input, the compiler will print the TokenizerError.found to
+    /// Unexpected input, the compiler will print the Token found to
     /// the console with no further suggestions
     Unexpected,
 }
