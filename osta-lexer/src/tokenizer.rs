@@ -26,6 +26,7 @@ impl<'source> Tokenizer<'source> {
     /// point.
     ///
     /// [`Some(Item)`]: Some
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<Result<Token, ()>> {
         let result = self.lexer.next().map(|r| r.map(|kind| Token {
             kind,

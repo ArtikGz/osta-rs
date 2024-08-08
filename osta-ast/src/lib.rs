@@ -112,18 +112,14 @@ impl AstBuilder {
         debug_assert!(token.kind == TokenKind::Int);
 
         let data_ref = self.push_data(Data::Token(token));
-        let node_ref = self.push_node(NodeKind::IntegerLiteral(data_ref));
-        
-        node_ref
+        self.push_node(NodeKind::IntegerLiteral(data_ref))
     }
 
     pub fn push_identifier(&mut self, token: Token) -> NodeRef {
         debug_assert!(token.kind == TokenKind::Identifier);
 
         let data_ref = self.push_data(Data::Token(token));
-        let node_ref = self.push_node(NodeKind::Identifier(data_ref));
-        
-        node_ref
+        self.push_node(NodeKind::Identifier(data_ref))
     }
 
     pub fn push_term(&mut self, child_ref: NodeRef) -> NodeRef {
@@ -309,5 +305,11 @@ impl AstBuilder {
 
     pub fn build(self) -> Ast {
         self.ast
+    }
+}
+
+impl Default for AstBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
