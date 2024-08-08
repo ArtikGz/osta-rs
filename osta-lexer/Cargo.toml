@@ -8,5 +8,4 @@ edition = "2021"
 [dependencies]
 osta-proc-macros = { path = "../osta-proc-macros" }
 memmap2 = "0.9.4"
-regex = "1.10.4"
-lazy_static = "1.4.0"
+logos = "0.14.1"

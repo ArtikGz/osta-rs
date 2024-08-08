@@ -38,9 +38,9 @@ pub enum NodeKind {
     FuncDef { func_decl_ref: NodeRef, block_ref: NodeRef },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Data<'a> {
-    Token(Token<'a>),
+#[derive(Debug, Clone, PartialEq)]
+pub enum Data {
+    Token(Token),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -50,18 +50,18 @@ pub struct Node {
 }
 
 #[derive(Debug)]
-pub struct Ast<'a> {
+pub struct Ast {
     pub nodes: Vec<Node>,
-    pub datas: Vec<Data<'a>>
+    pub datas: Vec<Data>
 }
 
 #[derive(Debug)]
-pub struct AstBuilder<'a> {
-    pub ast: Ast<'a>,
+pub struct AstBuilder {
+    pub ast: Ast,
     checkpoints: Vec<(usize, usize)>
 }
 
-impl<'a> AstBuilder<'a> {
+impl AstBuilder {
     pub fn new() -> Self {
         Self {
             ast: Ast {
@@ -102,13 +102,13 @@ impl<'a> AstBuilder<'a> {
         self.ast.nodes[child.0].parent_ref = parent_ref;
     }
 
-    pub fn push_data(&mut self, data: Data<'a>) -> DataRef {
+    pub fn push_data(&mut self, data: Data) -> DataRef {
         let data_ref = DataRef(self.ast.datas.len());
         self.ast.datas.push(data);
         data_ref
     }
 
-    pub fn push_integer(&mut self, token: Token<'a>) -> NodeRef {
+    pub fn push_integer(&mut self, token: Token) -> NodeRef {
         debug_assert!(token.kind == TokenKind::Int);
 
         let data_ref = self.push_data(Data::Token(token));
@@ -117,7 +117,7 @@ impl<'a> AstBuilder<'a> {
         node_ref
     }
 
-    pub fn push_identifier(&mut self, token: Token<'a>) -> NodeRef {
+    pub fn push_identifier(&mut self, token: Token) -> NodeRef {
         debug_assert!(token.kind == TokenKind::Identifier);
 
         let data_ref = self.push_data(Data::Token(token));
@@ -133,7 +133,7 @@ impl<'a> AstBuilder<'a> {
         node_ref
     }
 
-    pub fn push_unary(&mut self, op_token: Token<'a>, child_ref: NodeRef) -> NodeRef {
+    pub fn push_unary(&mut self, op_token: Token, child_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
         
         let op_ref = self.push_data(Data::Token(op_token));
@@ -143,7 +143,7 @@ impl<'a> AstBuilder<'a> {
         node_ref
     }
 
-    pub fn push_bin_expr(&mut self, left_ref: NodeRef, op_token: Token<'a>, right_ref: NodeRef) -> NodeRef {
+    pub fn push_bin_expr(&mut self, left_ref: NodeRef, op_token: Token, right_ref: NodeRef) -> NodeRef {
         debug_assert!(right_ref != NodeRef::NULL && left_ref != NodeRef::NULL);
         
         let op_ref = self.push_data(Data::Token(op_token));
@@ -245,7 +245,7 @@ impl<'a> AstBuilder<'a> {
         node_ref
     }
 
-    pub fn push_type_modifier(&mut self, child_ref: NodeRef, token: Token<'a>) -> NodeRef {
+    pub fn push_type_modifier(&mut self, child_ref: NodeRef, token: Token) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
 
         let modifier_ref = self.push_data(Data::Token(token));
@@ -307,7 +307,7 @@ impl<'a> AstBuilder<'a> {
         node_ref
     }
 
-    pub fn build(self) -> Ast<'a> {
+    pub fn build(self) -> Ast {
         self.ast
     }
 }
