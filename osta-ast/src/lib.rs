@@ -150,7 +150,7 @@ impl AstBuilder {
         node_ref
     }
 
-    pub fn push_param(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
+    pub fn push_func_call_arg(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
         
         let node_ref = self.push_node(NodeKind::Param { child_ref, next_ref });
@@ -160,7 +160,7 @@ impl AstBuilder {
         node_ref
     }
 
-    pub fn push_function_call_expr(&mut self, name_ref: NodeRef, first_param_ref: NodeRef) -> NodeRef {
+    pub fn push_func_call(&mut self, name_ref: NodeRef, first_param_ref: NodeRef) -> NodeRef {
         debug_assert!(name_ref != NodeRef::NULL);
         
         let node_ref = self.push_node(NodeKind::FuncCallExpr { name_ref, first_param_ref });

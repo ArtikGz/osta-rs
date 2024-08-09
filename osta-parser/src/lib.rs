@@ -6,16 +6,33 @@ pub mod parser;
 
 macro_rules! fallible {
     ($func:expr, $tokenizer:expr, $builder:expr $(, $arg:expr)*) => {
-        $func($tokenizer, $builder, $($arg),*).map_err(|err| {
-            $builder.rollback(&err).expect("rollback failed");
-            err
-        })
+        {
+            $builder.checkpoint();
+            let defer = $func($tokenizer, $builder, $($arg),*).map_err(|err| {
+                $builder.rollback(&err).expect("rollback failed");
+                err
+            });
+            $builder.commit();
+            defer
+        }
     };
     ($func:expr, $tokenizer:expr, $builder:expr) => {
-        $func($tokenizer, $builder).map_err(|err| {
-            $builder.rollback(&err).expect("rollback failed");
-            err
-        })
+        {
+            $builder.checkpoint();
+            let defer = $func($tokenizer, $builder).map_err(|err| {
+                $builder.rollback(&err).expect("rollback failed");
+                err
+            });
+            $builder.commit();
+            defer
+        }
     };
 }
 pub(crate) use fallible;
+
+macro_rules! optional {
+    ($func:expr $(, $arg:expr)*) => {
+        fallible!($func, $($arg),*).or(Ok(NodeRef::NULL))
+    };
+}
+pub(crate) use optional;
