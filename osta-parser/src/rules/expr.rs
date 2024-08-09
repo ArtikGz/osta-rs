@@ -1,6 +1,7 @@
 use osta_ast::{AstBuilder, NodeRef};
 use osta_lexer::*;
 use crate::*;
+use crate::rules::stmt::parse_block;
 
 pub fn parse_function_call_args(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     let arg0 = parse_expression(tokenizer, builder)?;
@@ -19,6 +20,10 @@ pub fn parse_function_call(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) 
 
 pub fn parse_term(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     if let Ok(node) = fallible!(parse_function_call, tokenizer, builder) {
+        return Ok(node);
+    }
+
+    if let Ok(node) = fallible!(parse_block, tokenizer, builder) {
         return Ok(node);
     }
 
