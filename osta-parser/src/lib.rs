@@ -1,4 +1,6 @@
+pub use error::*;
 pub use parser::*;
+pub use rules::*;
 
 pub mod error;
 pub mod rules;

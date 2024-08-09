@@ -1,3 +1,5 @@
+mod expr;
+
 #[cfg(test)]
 pub mod tests {
     macro_rules! input {
