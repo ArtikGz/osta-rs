@@ -1,6 +1,6 @@
 pub mod expr;
-mod stmt;
-mod flow;
+pub mod stmt;
+pub mod flow;
 
 #[cfg(test)]
 pub mod tests {
