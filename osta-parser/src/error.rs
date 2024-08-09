@@ -4,5 +4,5 @@ use osta_lexer::token::{Token, TokenKind};
 pub enum ParseError {
     UnexpectedEOF,
     UnexpectedToken { found: Token, expected: TokenKind },
-    UnexpectedSymbol, // TODO: Handle better
+    UnexpectedSymbol(usize),
 }

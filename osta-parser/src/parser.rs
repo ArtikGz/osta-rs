@@ -13,7 +13,7 @@ pub fn token(tokenizer: &mut Tokenizer, kind: TokenKind) -> Result<Token, ParseE
         } else {
             Err(ParseError::UnexpectedToken { found: token, expected: kind })
         },
-        _ => Err(ParseError::UnexpectedSymbol)
+        Err(pos) => Err(ParseError::UnexpectedSymbol(pos))
     }
 }
 

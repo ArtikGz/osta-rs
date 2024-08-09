@@ -5,7 +5,7 @@ use crate::token::*;
 #[derive(Debug, Clone)]
 pub struct Tokenizer<'source> {
     lexer: Lexer<'source, TokenKind>,
-    token: Option<Result<Token, ()>>
+    token: Option<Result<Token, usize>>
 }
 
 impl<'source> Tokenizer<'source> {
@@ -27,29 +27,18 @@ impl<'source> Tokenizer<'source> {
     ///
     /// [`Some(Item)`]: Some
     #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self) -> Option<Result<Token, ()>> {
+    pub fn next(&mut self) -> Option<Result<Token, usize>> {
         let result = self.lexer.next().map(|r| r.map(|kind| Token {
             kind,
             span: self.lexer.span()
-        }));
+        })).map(|mut result| result.map_err(|_| self.lexer.span().start));
         self.token = result.clone();
         result
     }
 
     /// Returns the last token that was returned by `next` without advancing the iterator.
-    pub fn peek(&self) -> Option<Result<Token, ()>> {
+    pub fn peek(&self) -> Option<Result<Token, usize>> {
         self.token.clone()
-    }
-
-    /// Returns the current token if it is of the specified kind and advances the iterator.
-    pub fn check(&mut self, kind: TokenKind) -> Option<Token> {
-        match self.peek()? {
-            Ok(token) if token.kind == kind => {
-                self.next();
-                Some(token)
-            },
-            _ => None
-        }
     }
 }
 
@@ -64,6 +53,6 @@ mod tests {
             kind: TokenKind::Identifier,
             span: (0..5)
         })));
-        assert_eq!(tokenizer.next(), Some(Err(())));
+        assert_eq!(tokenizer.next(), Some(Err(6)));
     }
 }
