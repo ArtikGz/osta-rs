@@ -15,8 +15,10 @@ macro_rules! fallible {
                 $builder.rollback(&err).expect("rollback failed");
                 err
             });
-            *$tokenizer = lexer;
-            $builder.commit();
+            if defer.is_ok() {
+                *$tokenizer = lexer;
+                $builder.commit();
+            }
             defer
         }
     };

@@ -1,4 +1,5 @@
 pub mod expr;
+mod stmt;
 
 #[cfg(test)]
 pub mod tests {
@@ -12,23 +13,26 @@ pub mod tests {
     }
     pub(crate) use input;
 
-    macro_rules! assert_ast {
-        ($p:expr, $input:expr, $nodes:pat, $datas:pat) => {{
-            let (_, rest) = dbg!($p.apply($input));
+    #[cfg(test)]
+    pub mod tests {
+        macro_rules! assert_ast {
+            ($func:expr, $input:expr, $nodes:pat, $datas:pat) => {{
+                let (mut tokenizer, mut ast_builder) = (Tokenizer::new($input), AstBuilder::new());
+                let result = $func(&mut tokenizer, &mut ast_builder).unwrap();
 
-            // NOTE(cdecompilador): using matches! here may make some literal matching painful
-            // for example we can't write !0 inside
-            assert!(matches!(
-                &rest.builder.borrow().ast.nodes[..],
-                $nodes
-            ));
-            assert!(matches!(
-                &rest.builder.borrow().ast.datas[..],
-                $datas
-            ));
+                // NOTE(cdecompilador): using matches! here may make some literal matching painful
+                // for example we can't write !0 inside
+                assert!(matches!(
+                    ast_builder.ast.nodes[..],
+                    $nodes
+                ));
 
-            rest
-        }};
+                assert!(matches!(
+                    ast_builder.ast.datas[..],
+                    $datas
+                ));
+            }};
+        }
+        pub(crate) use assert_ast;
     }
-    pub(crate) use assert_ast;
 }

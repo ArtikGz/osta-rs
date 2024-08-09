@@ -5,15 +5,14 @@ use crate::*;
 pub fn parse_function_call_args(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     let arg0 = parse_expression(tokenizer, builder)?;
     let next = optional!(parse_function_call_args, tokenizer, builder)?;
+
     Ok(builder.push_func_call_arg(arg0, next))
 }
 
 pub fn parse_function_call(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     let name = parse_identifier(tokenizer, builder)?;
     tokenize(tokenizer, &[TokenKind::LParen])?;
-    builder.checkpoint();
     let args = optional!(parse_function_call_args, tokenizer, builder)?;
-    builder.commit();
     tokenize(tokenizer, &[TokenKind::RParen])?;
     Ok(builder.push_func_call(name, args))
 }
