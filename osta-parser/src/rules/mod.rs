@@ -4,19 +4,23 @@ pub mod flow;
 
 #[cfg(test)]
 pub mod tests {
-    macro_rules! input {
-        ($str_input:expr) => {{
-            crate::ParserInput {
-                input: $str_input,
-                builder: std::rc::Rc::new(std::cell::RefCell::new(osta_ast::AstBuilder::new()))
-            }
-        }};
-    }
-    pub(crate) use input;
 
-    #[cfg(test)]
-    pub mod tests {
-        macro_rules! assert_ast {
+    // Helper macros for tests
+    macro_rules! int {
+        () => {
+            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Integer, .. })
+        };
+    }
+    pub(crate) use int;
+
+    macro_rules! identifier {
+        () => {
+            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Identifier, .. })
+        };
+    }
+    pub(crate) use identifier;
+
+    macro_rules! assert_ast {
             ($func:expr, $input:expr, $nodes:pat, $datas:pat) => {{
                 let (mut tokenizer, mut ast_builder) = (Tokenizer::new($input), AstBuilder::new());
                 let _result = $func(&mut tokenizer, &mut ast_builder).unwrap();
@@ -36,6 +40,5 @@ pub mod tests {
                 ));
             }};
         }
-        pub(crate) use assert_ast;
-    }
+    pub(crate) use assert_ast;
 }

@@ -1,6 +1,6 @@
 use osta_ast::{AstBuilder, NodeRef};
 use osta_lexer::{TokenKind, Tokenizer};
-use crate::{fallible, tokenize, ParseError};
+use crate::{fallible, optional, tokenize, ParseError};
 use crate::expr::parse_expression;
 
 pub fn parse_if_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
@@ -15,23 +15,21 @@ pub fn parse_if_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Res
     Ok(builder.push_if_stmt(cond, if_then, if_else))
 }
 
+pub fn parse_do_while_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+    tokenize(tokenizer, &[TokenKind::Do])?;
+    let expr = optional!(parse_expression, tokenizer, builder)?;
+    tokenize(tokenizer, &[TokenKind::While])?;
+    let cond = parse_expression(tokenizer, builder)?;
+
+    Ok(builder.push_do_while(expr, cond))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use osta_ast::{DataRef, Node, NodeKind};
-    use crate::tests::tests::assert_ast;
+    use crate::tests::{assert_ast, int, identifier};
 
-    macro_rules! ensure_int {
-        () => {
-            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Integer, .. })
-        };
-    }
-
-    macro_rules! ensure_identifier {
-        () => {
-            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Identifier, .. })
-        };
-    }
 
     #[test]
     fn simple_if_else_statement() {
@@ -48,7 +46,7 @@ mod tests {
                 Node { kind: NodeKind::Term(NodeRef(4)), .. },
                 Node { kind: NodeKind::IfStmt { cond_ref: NodeRef(1), then_block_ref: NodeRef(3), else_block_ref: NodeRef(5)  }, .. }
             ],
-            [ensure_int!(), ensure_int!(), ensure_int!()]
+            [int!(), int!(), int!()]
         );
     }
 
@@ -75,8 +73,18 @@ mod tests {
                 // if
                 Node { kind: NodeKind::IfStmt { cond_ref: NodeRef(1), then_block_ref: NodeRef(10), else_block_ref: NodeRef::NULL  }, .. }
             ],
-            [ensure_identifier!(), ensure_identifier!(), ensure_identifier!()]
+            [identifier!(), identifier!(), identifier!()]
         );
     }
 
+    #[test]
+    fn do_nobody_while_cond() {
+        assert_ast!(parse_do_while_stmt, "do while {}",
+            [
+                Node { kind: NodeKind::Block { first_stmt_ref: NodeRef::NULL}, .. },
+                Node { kind: NodeKind::DoWhile { do_expr_ref: NodeRef::NULL, cond_ref: NodeRef(0) }, .. }
+            ],
+            []
+        );
+    }
 }

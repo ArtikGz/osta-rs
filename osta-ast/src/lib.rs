@@ -29,6 +29,7 @@ pub enum NodeKind {
     ReturnStmt { expr_ref: NodeRef },
     Block { first_stmt_ref: NodeRef },
     IfStmt { cond_ref: NodeRef, then_block_ref: NodeRef, else_block_ref: NodeRef },
+    DoWhile { do_expr_ref: NodeRef, cond_ref: NodeRef },
     Type(NodeRef),
     ArrayType { child_ref: NodeRef, length_ref: NodeRef },
     TypeModifier { child_ref: NodeRef, modifier_ref: DataRef },
@@ -230,6 +231,16 @@ impl AstBuilder {
         self.set_parent(cond_ref, node_ref);
         self.set_parent(then_block_ref, node_ref);
         if else_block_ref != NodeRef::NULL { self.set_parent(else_block_ref, node_ref); }
+
+        node_ref
+    }
+
+    pub fn push_do_while(&mut self, do_expr_ref: NodeRef, cond_ref: NodeRef) -> NodeRef {
+        debug_assert!(cond_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::DoWhile { do_expr_ref, cond_ref });
+        if do_expr_ref != NodeRef::NULL { self.set_parent(do_expr_ref, node_ref); }
+        self.set_parent(cond_ref, node_ref);
 
         node_ref
     }
