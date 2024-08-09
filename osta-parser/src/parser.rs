@@ -17,8 +17,14 @@ pub fn token(tokenizer: &mut Tokenizer, kind: TokenKind) -> Result<Token, ParseE
     }
 }
 
-pub fn parse_int(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+pub fn parse_integer(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     token(tokenizer, TokenKind::Int).map(|token| {
         builder.push_integer(token)
+    })
+}
+
+pub fn parse_identifier(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+    token(tokenizer, TokenKind::Identifier).map(|token| {
+        builder.push_identifier(token)
     })
 }
