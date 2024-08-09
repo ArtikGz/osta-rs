@@ -2,7 +2,7 @@ use osta_ast::{AstBuilder, NodeRef};
 use osta_lexer::*;
 
 use crate::error::ParseError;
-pub use crate::{fallible, optional};
+pub(crate) use crate::{fallible, optional};
 
 pub fn peek(tokenizer: &mut Tokenizer) -> Result<Token, ParseError> {
     tokenizer.peek()
