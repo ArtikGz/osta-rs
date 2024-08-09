@@ -13,6 +13,8 @@ pub enum TokenKind {
     Identifier,
     
     // Keywords
+    #[token("do")]
+    Do,
     #[token("while")]
     While,
     #[token("if")]
