@@ -30,7 +30,7 @@ pub fn parse_block(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Resul
 mod tests {
     use super::*;
     use osta_ast::{DataRef, Node, NodeKind};
-    use crate::tests::tests::assert_ast;
+    use crate::tests::assert_ast;
 
     #[test]
     fn simple_block() {

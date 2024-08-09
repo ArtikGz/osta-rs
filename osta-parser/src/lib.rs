@@ -31,19 +31,3 @@ macro_rules! optional {
     };
 }
 pub(crate) use optional;
-
-// Helper macros for tests
-macro_rules! int {
-    () => {
-        osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Integer, .. })
-    };
-}
-pub(crate) use int;
-
-macro_rules! identifier {
-    () => {
-        osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Identifier, .. })
-    };
-}
-pub(crate) use identifier;
-

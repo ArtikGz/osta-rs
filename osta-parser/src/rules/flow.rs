@@ -28,8 +28,7 @@ pub fn parse_do_while_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) 
 mod tests {
     use super::*;
     use osta_ast::{DataRef, Node, NodeKind};
-    use crate::{int, identifier};
-    use crate::tests::tests::assert_ast;
+    use crate::tests::{assert_ast, int, identifier};
 
 
     #[test]
