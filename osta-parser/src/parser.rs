@@ -51,7 +51,9 @@ pub fn parse_term(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result
             let expr = parse_term(tokenizer, builder)?;
             Ok(builder.push_unary(token, expr))
         },
-        _ => unreachable!("unreachable")
+        _ => Err(ParseError::UnexpectedToken { found: token, expected: &[
+            TokenKind::Integer, TokenKind::Identifier, TokenKind::LParen, TokenKind::Minus, TokenKind::Bang
+        ] })
     }
 }
 
