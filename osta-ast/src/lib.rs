@@ -109,7 +109,7 @@ impl AstBuilder {
     }
 
     pub fn push_integer(&mut self, token: Token) -> NodeRef {
-        debug_assert!(token.kind == TokenKind::Int);
+        debug_assert!(token.kind == TokenKind::Integer);
 
         let data_ref = self.push_data(Data::Token(token));
         self.push_node(NodeKind::IntegerLiteral(data_ref))

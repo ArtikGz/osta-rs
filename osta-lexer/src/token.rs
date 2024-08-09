@@ -30,7 +30,7 @@ pub enum TokenKind {
     #[token("-")]
     Minus,
     #[token("*")]
-    Star,
+    Asterisk,
     #[token(";")]
     Semicolon,
     #[token("(")]
@@ -60,5 +60,5 @@ pub enum TokenKind {
     #[regex(r#""([^"]|\")*""#)]
     String,
     #[regex("[0-9]+")]
-    Int,
+    Integer,
 }
