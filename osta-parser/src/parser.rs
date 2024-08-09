@@ -6,7 +6,7 @@ use crate::error::ParseError;
 use crate::fallible;
 
 fn acquire(tokenizer: &mut Tokenizer) -> Result<Token, ParseError> {
-    tokenizer.next()
+    tokenizer.peek()
         .ok_or(ParseError::UnexpectedEOF)?
         .map_err(|pos| ParseError::UnexpectedSymbol(pos))
 }
@@ -14,6 +14,7 @@ fn acquire(tokenizer: &mut Tokenizer) -> Result<Token, ParseError> {
 fn tokenize(tokenizer: &mut Tokenizer, kind: &'static [TokenKind]) -> Result<Token, ParseError> {
     let token = acquire(tokenizer)?;
     if kind.contains(&token.kind) {
+        tokenizer.next();
         Ok(token)
     } else {
         Err(ParseError::UnexpectedToken {
@@ -37,24 +38,25 @@ pub fn parse_identifier(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> 
 
 pub fn parse_term(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     let token = acquire(tokenizer)?;
-    match token.kind {
-        TokenKind::Integer => parse_integer(tokenizer, builder),
-        TokenKind::Identifier => parse_identifier(tokenizer, builder),
+    let node = match token.kind {
+        TokenKind::Integer => parse_integer(tokenizer, builder)?,
+        TokenKind::Identifier => parse_identifier(tokenizer, builder)?,
         TokenKind::LParen => {
             tokenizer.next();
             let expr = fallible!(parse_expression, tokenizer, builder)?;
             tokenize(tokenizer, &[TokenKind::RParen])?;
-            Ok(expr)
+            expr
         },
         TokenKind::Minus | TokenKind::Bang => {
             tokenizer.next();
             let expr = parse_term(tokenizer, builder)?;
-            Ok(builder.push_unary(token, expr))
+            builder.push_unary(token, expr)
         },
         _ => Err(ParseError::UnexpectedToken { found: token, expected: &[
             TokenKind::Integer, TokenKind::Identifier, TokenKind::LParen, TokenKind::Minus, TokenKind::Bang
-        ] })
-    }
+        ] })?
+    };
+    Ok(builder.push_term(node))
 }
 
 pub fn parse_expression(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
