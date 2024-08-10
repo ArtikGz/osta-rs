@@ -3,8 +3,8 @@ pub use parser::*;
 pub use rules::*;
 
 pub mod error;
-pub mod rules;
 pub mod parser;
+pub mod rules;
 
 macro_rules! fallible {
     ($func:expr, $tokenizer:expr, $builder:expr$(, $arg:expr)*) => {

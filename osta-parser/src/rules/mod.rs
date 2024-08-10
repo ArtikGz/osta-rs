@@ -1,6 +1,7 @@
 pub mod expr;
 pub mod stmt;
 pub mod flow;
+mod types;
 
 #[cfg(test)]
 pub mod tests {
@@ -19,6 +20,13 @@ pub mod tests {
         };
     }
     pub(crate) use identifier;
+
+    macro_rules! asterisk {
+        () => {
+            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Asterisk, .. })
+        };
+    }
+    pub(crate) use asterisk;
 
     macro_rules! assert_ast {
             ($func:expr, $input:expr, $nodes:pat, $datas:pat) => {{
@@ -41,4 +49,5 @@ pub mod tests {
             }};
         }
     pub(crate) use assert_ast;
+    use osta_lexer::TokenKind;
 }
