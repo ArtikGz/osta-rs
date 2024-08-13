@@ -15,13 +15,13 @@ pub fn parse_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result
 
 pub fn parse_stmt_in_block(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     let stmt = parse_stmt(tokenizer, builder)?;
-    let next = optional!(parse_stmt_in_block, tokenizer, builder)?;
+    let next = optional!(parse_stmt_in_block, tokenizer, builder);
     Ok(builder.push_stmt(stmt, next))
 }
 
 pub fn parse_block(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     tokenize(tokenizer, &[TokenKind::LBrace])?;
-    let stmt = optional!(parse_stmt_in_block, tokenizer, builder)?;
+    let stmt = optional!(parse_stmt_in_block, tokenizer, builder);
     tokenize(tokenizer, &[TokenKind::RBrace])?;
     Ok(builder.push_block(stmt))
 }

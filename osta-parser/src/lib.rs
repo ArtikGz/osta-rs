@@ -27,7 +27,7 @@ pub(crate) use fallible;
 
 macro_rules! optional {
     ($func:expr, $tokenizer:expr, $builder:expr$(, $arg:expr)*) => {
-        fallible!($func, $tokenizer, $builder$(, $arg)*).or(Ok(NodeRef::NULL))
+        unsafe { fallible!($func, $tokenizer, $builder$(, $arg)*).or(Ok::<NodeRef, ParseError>(NodeRef::NULL)).unwrap_unchecked() }
     };
 }
 pub(crate) use optional;

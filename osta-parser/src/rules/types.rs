@@ -1,6 +1,7 @@
-use osta_ast::{AstBuilder, Node, NodeRef};
-use osta_lexer::{Token, TokenKind, Tokenizer};
-use crate::{fallible, optional, parse_identifier, peek, tokenize, ParseError};
+use osta_ast::{AstBuilder, NodeRef};
+use osta_lexer::{Tokenizer, TokenKind};
+
+use crate::{fallible, optional, parse_identifier, ParseError, peek, tokenize};
 use crate::expr::parse_expression;
 
 pub fn parse_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
@@ -8,7 +9,7 @@ pub fn parse_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result
         if let Ok(_) = tokenize(tokenizer, &[TokenKind::Bang]) {
             let right = parse_type(tokenizer, builder)?;
 
-            return Ok(builder.push_error_type(left, right))
+            return Ok(builder.push_error_type(left, right));
         }
 
         return Ok(left);
@@ -36,24 +37,24 @@ pub fn parse_base_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> R
 
 // NOTE(ArtikGz): In the future, move parsing tuples into a metacompliation step in the stdlib
 // creating a struct and implementing iterable + destructuring
-pub fn parse_inner_tuple(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
-    let first = optional!(parse_derived_type, tokenizer, builder)?;
+pub fn parse_inner_tuple(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> NodeRef {
+    let first = optional!(parse_derived_type, tokenizer, builder);
     if first == NodeRef::NULL {
-        return Ok(NodeRef::NULL);
+        return NodeRef::NULL;
     }
 
-    Ok(if let Ok(_) = tokenize(tokenizer, &[TokenKind::Comma]) {
-        let next = parse_inner_tuple(tokenizer, builder)?;
+    if let Ok(_) = tokenize(tokenizer, &[TokenKind::Comma]) {
+        let next = parse_inner_tuple(tokenizer, builder);
 
         builder.push_tuple_type(first, next)
     } else {
         builder.push_tuple_type(first, NodeRef::NULL)
-    })
+    }
 }
 
 pub fn parse_derived_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     if let Ok(_) = tokenize(tokenizer, &[TokenKind::LParen]) {
-        let inner = parse_inner_tuple(tokenizer, builder)?;
+        let inner = parse_inner_tuple(tokenizer, builder);
         tokenize(tokenizer, &[TokenKind::RParen])?;
 
         // NOTE(ArtikGz): if tuple is (), inner would be NodeRef::NULL
@@ -65,7 +66,7 @@ pub fn parse_derived_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -
     while let Ok(token) = peek(tokenizer) {
         match token.kind {
             TokenKind::LBracket => {
-                let length = optional!(parse_expression, tokenizer, builder)?;
+                let length = optional!(parse_expression, tokenizer, builder);
                 tokenize(tokenizer, &[TokenKind::RBracket])?;
 
                 final_node = builder.push_array_type(final_node, length);
@@ -83,9 +84,11 @@ pub fn parse_derived_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use osta_ast::{DataRef, Node, NodeKind};
+
     use crate::tests::{assert_ast, asterisk};
+
+    use super::*;
 
     #[test]
     fn test_void() {

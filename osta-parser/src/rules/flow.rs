@@ -17,7 +17,7 @@ pub fn parse_if_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Res
 
 pub fn parse_do_while_stmt(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
     tokenize(tokenizer, &[TokenKind::Do])?;
-    let expr = optional!(parse_expression, tokenizer, builder)?;
+    let expr = optional!(parse_expression, tokenizer, builder);
     tokenize(tokenizer, &[TokenKind::While])?;
     let cond = parse_expression(tokenizer, builder)?;
 
