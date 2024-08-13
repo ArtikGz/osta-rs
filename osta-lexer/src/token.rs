@@ -47,6 +47,10 @@ pub enum TokenKind {
     LBracket,
     #[token("]")]
     RBracket,
+    #[token("<")]
+    LessThan,
+    #[token(">")]
+    GreaterThan,
     #[token("=")]
     Eq,
     #[token("!")]

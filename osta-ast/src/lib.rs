@@ -33,6 +33,7 @@ pub enum NodeKind {
     Type(NodeRef),
     ArrayType { child_ref: NodeRef, length_ref: NodeRef },
     TupleType { child_ref: NodeRef, next_ref: NodeRef },
+    GenericType { child_ref: NodeRef, next_ref: NodeRef },
     TypeModifier { child_ref: NodeRef, modifier_ref: DataRef },
     ErrorType { child_ref: NodeRef, error_ref: NodeRef },
     ParamDecl { type_ref: NodeRef, name_ref: NodeRef, next_ref: NodeRef },
@@ -259,6 +260,18 @@ impl AstBuilder {
         let modifier_ref = self.push_data(Data::Token(token));
         let node_ref = self.push_node(NodeKind::TypeModifier { child_ref, modifier_ref });
         self.set_parent(child_ref, node_ref);
+
+        node_ref
+    }
+
+    pub fn push_generic_type(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
+        debug_assert!(child_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::GenericType { child_ref, next_ref });
+        self.set_parent(child_ref, node_ref);
+        if next_ref != NodeRef::NULL {
+            self.set_parent(next_ref, node_ref);
+        }
 
         node_ref
     }

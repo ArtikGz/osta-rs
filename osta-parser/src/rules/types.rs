@@ -5,6 +5,13 @@ use crate::{fallible, optional, parse_identifier, ParseError, peek, tokenize};
 use crate::expr::parse_expression;
 
 pub fn parse_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+    /*
+    TODO:
+     Implement dynamic generic types as the BNF `<generic_types> <type>` somehow to let the
+     type checker know that this is not a normal generic type but a dynamic one.
+     This should be implemented using the annotation system.
+    */
+
     if let Ok(left) = fallible!(parse_derived_type, tokenizer, builder) {
         if let Ok(_) = tokenize(tokenizer, &[TokenKind::Bang]) {
             let right = parse_type(tokenizer, builder)?;
@@ -32,7 +39,38 @@ pub fn parse_base_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> R
     }
 
     let node = parse_identifier(tokenizer, builder)?;
+
+    let generic = optional!(parse_generic_types, tokenizer, builder);
+    let node = if generic == NodeRef::NULL {
+        node
+    } else {
+        builder.push_generic_type(node, generic)
+    };
+
     Ok(builder.push_type(node))
+}
+
+pub fn parse_inner_generic(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> NodeRef {
+    let first = optional!(parse_type, tokenizer, builder);
+    if first == NodeRef::NULL {
+        return NodeRef::NULL;
+    }
+
+    if let Ok(_) = tokenize(tokenizer, &[TokenKind::Comma]) {
+        let next = parse_inner_generic(tokenizer, builder);
+
+        builder.push_generic_type(first, next)
+    } else {
+        builder.push_generic_type(first, NodeRef::NULL)
+    }
+}
+
+pub fn parse_generic_types(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+    tokenize(tokenizer, &[TokenKind::LessThan])?;
+    let inner = parse_inner_generic(tokenizer, builder);
+    tokenize(tokenizer, &[TokenKind::GreaterThan])?;
+
+    Ok(inner)
 }
 
 // NOTE(ArtikGz): In the future, move parsing tuples into a metacompliation step in the stdlib
