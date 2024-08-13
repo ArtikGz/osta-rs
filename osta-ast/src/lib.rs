@@ -32,6 +32,7 @@ pub enum NodeKind {
     DoWhile { do_expr_ref: NodeRef, cond_ref: NodeRef },
     Type(NodeRef),
     ArrayType { child_ref: NodeRef, length_ref: NodeRef },
+    TupleType { child_ref: NodeRef, next_ref: NodeRef },
     TypeModifier { child_ref: NodeRef, modifier_ref: DataRef },
     ErrorType { child_ref: NodeRef, error_ref: NodeRef },
     ParamDecl { type_ref: NodeRef, name_ref: NodeRef, next_ref: NodeRef },
@@ -263,11 +264,27 @@ impl AstBuilder {
     }
 
     pub fn push_array_type(&mut self, child_ref: NodeRef, length_ref: NodeRef) -> NodeRef {
-        debug_assert!(child_ref != NodeRef::NULL && length_ref != NodeRef::NULL);
+        debug_assert!(child_ref != NodeRef::NULL);
 
         let node_ref = self.push_node(NodeKind::ArrayType { child_ref, length_ref });
         self.set_parent(child_ref, node_ref);
-        self.set_parent(length_ref, node_ref);
+        if length_ref != NodeRef::NULL {
+            self.set_parent(length_ref, node_ref);
+        }
+
+        node_ref
+    }
+
+    pub fn push_tuple_type(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
+        if child_ref == NodeRef::NULL {
+            return NodeRef::NULL;
+        }
+
+        let node_ref = self.push_node(NodeKind::TupleType { child_ref, next_ref });
+        self.set_parent(child_ref, node_ref);
+        if next_ref != NodeRef::NULL {
+            self.set_parent(next_ref, node_ref);
+        }
 
         node_ref
     }

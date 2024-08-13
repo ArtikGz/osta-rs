@@ -31,7 +31,7 @@ impl<'source> Tokenizer<'source> {
         let result = self.lexer.next().map(|r| r.map(|kind| Token {
             kind,
             span: self.lexer.span()
-        })).map(|mut result| result.map_err(|_| self.lexer.span().start));
+        })).map(|result| result.map_err(|_| self.lexer.span().start));
         self.token = result.clone();
         result
     }
