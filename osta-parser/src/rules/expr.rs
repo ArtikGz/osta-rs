@@ -53,12 +53,12 @@ pub fn parse_term(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result
 }
 
 pub fn parse_expression(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
-    if let Ok(node) = fallible!(parse_term, tokenizer, builder) {
-        return Ok(node);
-    } // TODO: Handle error accumulation
-
     let left = parse_term(tokenizer, builder)?;
-    let op = tokenize(tokenizer, &[TokenKind::Plus, TokenKind::Minus, TokenKind::Asterisk])?;
-    let right = parse_term(tokenizer, builder)?;
-    Ok(builder.push_bin_expr(left, op, right))
+
+    if let Ok(op) = tokenize(tokenizer, &[TokenKind::Plus, TokenKind::Minus, TokenKind::Asterisk]) {
+        let right = parse_expression(tokenizer, builder)?;
+        return Ok(builder.push_bin_expr(left, op, right));
+    }
+
+    Ok(left)
 }
