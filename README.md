@@ -13,6 +13,10 @@ Osta is a modern view of the well known C language.
 ## TODO:
 - [ ] Expressions
   - [ ] FIXES: ([src](osta-parser/src/rules/expr.rs))
+  - [x] Function call
+  - [x] Block
+  - [x] Unary
+  - [x] Binary
   - [ ] Assignment
 - [x] If statements
 - [ ] Loops
@@ -21,8 +25,7 @@ Osta is a modern view of the well known C language.
   - [ ] 🪄 For `{ init; while (condition) { ...; update } }`
 - [ ] Statements
   - [ ] Variable declaration
-  - [ ] Expression statement (`expr;`)
-    - [x] Function call
+  - [x] Expression statement (`expr;`)
   - [ ] Return
 ## Quirks
 - Expressions:
