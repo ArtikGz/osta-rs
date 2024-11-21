@@ -1,10 +1,13 @@
 use osta_ast::{AstBuilder, NodeRef};
-use osta_lexer::{Tokenizer, TokenKind};
+use osta_lexer::{TokenKind, Tokenizer};
 
-use crate::{fallible, optional, parse_identifier, ParseError, peek, tokenize};
 use crate::expr::parse_expression;
+use crate::{fallible, optional, parse_identifier, peek, tokenize, ParseError};
 
-pub fn parse_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+pub fn parse_type(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
     /*
     TODO:
      Implement dynamic generic types as the BNF `<generic_types> <type>` somehow to let the
@@ -25,13 +28,19 @@ pub fn parse_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result
     parse_void(tokenizer, builder)
 }
 
-pub fn parse_void(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+pub fn parse_void(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
     tokenize(tokenizer, &[TokenKind::Void])?;
 
     Ok(builder.push_type(NodeRef::NULL))
 }
 
-pub fn parse_base_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+pub fn parse_base_type(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
     if let Ok(type_node) = fallible!(parse_void, tokenizer, builder) {
         let token = tokenize(tokenizer, &[TokenKind::Asterisk])?;
 
@@ -65,7 +74,10 @@ pub fn parse_inner_generic(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) 
     }
 }
 
-pub fn parse_generic_types(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+pub fn parse_generic_types(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
     tokenize(tokenizer, &[TokenKind::LessThan])?;
     let inner = parse_inner_generic(tokenizer, builder);
     tokenize(tokenizer, &[TokenKind::GreaterThan])?;
@@ -90,7 +102,10 @@ pub fn parse_inner_tuple(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) ->
     }
 }
 
-pub fn parse_derived_type(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
+pub fn parse_derived_type(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
     if let Ok(_) = tokenize(tokenizer, &[TokenKind::LParen]) {
         let inner = parse_inner_tuple(tokenizer, builder);
         tokenize(tokenizer, &[TokenKind::RParen])?;
@@ -130,21 +145,41 @@ mod tests {
 
     #[test]
     fn test_void() {
-        assert_ast!(parse_type, "void",
-            [
-                Node { kind: NodeKind::Type(NodeRef::NULL), .. },
-            ],
+        assert_ast!(
+            parse_type,
+            "void",
+            [Node {
+                kind: NodeKind::Type(NodeRef::NULL),
+                ..
+            },],
             []
         );
     }
 
     #[test]
     fn test_void_pointer_pointer() {
-        assert_ast!(parse_type, "void**",
+        assert_ast!(
+            parse_type,
+            "void**",
             [
-                Node { kind: NodeKind::Type(NodeRef::NULL), .. },
-                Node { kind: NodeKind::TypeModifier { child_ref: NodeRef(0), modifier_ref: DataRef(0) }, .. },
-                Node { kind: NodeKind::TypeModifier { child_ref: NodeRef(1), modifier_ref: DataRef(1) }, .. }
+                Node {
+                    kind: NodeKind::Type(NodeRef::NULL),
+                    ..
+                },
+                Node {
+                    kind: NodeKind::TypeModifier {
+                        child_ref: NodeRef(0),
+                        modifier_ref: DataRef(0)
+                    },
+                    ..
+                },
+                Node {
+                    kind: NodeKind::TypeModifier {
+                        child_ref: NodeRef(1),
+                        modifier_ref: DataRef(1)
+                    },
+                    ..
+                }
             ],
             [asterisk!(), asterisk!()]
         );

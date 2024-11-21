@@ -5,12 +5,16 @@ use crate::error::ParseError;
 pub(crate) use crate::{fallible, optional};
 
 pub fn peek(tokenizer: &mut Tokenizer) -> Result<Token, ParseError> {
-    tokenizer.peek()
+    tokenizer
+        .peek()
         .ok_or(ParseError::UnexpectedEOF)?
         .map_err(|pos| ParseError::UnexpectedSymbol(pos))
 }
 
-pub fn tokenize(tokenizer: &mut Tokenizer, kind: &'static [TokenKind]) -> Result<Token, ParseError> {
+pub fn tokenize(
+    tokenizer: &mut Tokenizer,
+    kind: &'static [TokenKind],
+) -> Result<Token, ParseError> {
     let token = peek(tokenizer)?;
     if kind.contains(&token.kind) {
         tokenizer.next();
@@ -23,14 +27,16 @@ pub fn tokenize(tokenizer: &mut Tokenizer, kind: &'static [TokenKind]) -> Result
     }
 }
 
-pub fn parse_integer(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
-    tokenize(tokenizer, &[TokenKind::Integer]).map(|token| {
-        builder.push_integer(token)
-    })
+pub fn parse_integer(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
+    tokenize(tokenizer, &[TokenKind::Integer]).map(|token| builder.push_integer(token))
 }
 
-pub fn parse_identifier(tokenizer: &mut Tokenizer, builder: &mut AstBuilder) -> Result<NodeRef, ParseError> {
-    tokenize(tokenizer, &[TokenKind::Identifier]).map(|token| {
-        builder.push_identifier(token)
-    })
+pub fn parse_identifier(
+    tokenizer: &mut Tokenizer,
+    builder: &mut AstBuilder,
+) -> Result<NodeRef, ParseError> {
+    tokenize(tokenizer, &[TokenKind::Identifier]).map(|token| builder.push_identifier(token))
 }

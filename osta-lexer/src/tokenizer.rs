@@ -5,14 +5,14 @@ use crate::token::*;
 #[derive(Debug, Clone)]
 pub struct Tokenizer<'source> {
     lexer: Lexer<'source, TokenKind>,
-    token: Option<Result<Token, usize>>
+    token: Option<Result<Token, usize>>,
 }
 
 impl<'source> Tokenizer<'source> {
     pub fn new(input: &str) -> Tokenizer {
         let mut tokenizer = Tokenizer {
             lexer: TokenKind::lexer(input),
-            token: None
+            token: None,
         };
         tokenizer.next();
         tokenizer
@@ -28,10 +28,16 @@ impl<'source> Tokenizer<'source> {
     /// [`Some(Item)`]: Some
     #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<Result<Token, usize>> {
-        let result = self.lexer.next().map(|r| r.map(|kind| Token {
-            kind,
-            span: self.lexer.span()
-        })).map(|result| result.map_err(|_| self.lexer.span().start));
+        let result = self
+            .lexer
+            .next()
+            .map(|r| {
+                r.map(|kind| Token {
+                    kind,
+                    span: self.lexer.span(),
+                })
+            })
+            .map(|result| result.map_err(|_| self.lexer.span().start));
         self.token = result.clone();
         result
     }
@@ -49,10 +55,13 @@ mod tests {
     #[test]
     fn test_identifier() {
         let mut tokenizer = Tokenizer::new("hello @");
-        assert_eq!(tokenizer.peek(), Some(Ok(Token {
-            kind: TokenKind::Identifier,
-            span: (0..5)
-        })));
+        assert_eq!(
+            tokenizer.peek(),
+            Some(Ok(Token {
+                kind: TokenKind::Identifier,
+                span: (0..5)
+            }))
+        );
         assert_eq!(tokenizer.next(), Some(Err(6)));
     }
 }

@@ -11,7 +11,7 @@ pub struct Token {
 pub enum TokenKind {
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifier,
-    
+
     // Keywords
     #[token("do")]
     Do,

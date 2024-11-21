@@ -15,30 +15,97 @@ impl DataRef {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Annotation {
+    DynamicGenericType(NodeRef),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NodeKind {
     IntegerLiteral(DataRef),
     Identifier(DataRef),
-    BinExpr { left_ref: NodeRef, op_ref: DataRef, right_ref: NodeRef },
+    BinExpr {
+        left_ref: NodeRef,
+        op_ref: DataRef,
+        right_ref: NodeRef,
+    },
     Term(NodeRef),
-    UnaryTerm { op_ref: DataRef, child_ref: NodeRef },
-    FuncCallExpr { name_ref: NodeRef, first_param_ref: NodeRef },
-    Param { child_ref: NodeRef, next_ref: NodeRef },
-    Stmt { child_ref: NodeRef, next_ref: NodeRef },
-    ExprStmt { expr_ref: NodeRef },
-    AssignStmt { name_ref: NodeRef, expr_ref: NodeRef },
-    ReturnStmt { expr_ref: NodeRef },
-    Block { first_stmt_ref: NodeRef },
-    IfStmt { cond_ref: NodeRef, then_block_ref: NodeRef, else_block_ref: NodeRef },
-    DoWhile { do_expr_ref: NodeRef, cond_ref: NodeRef },
+    UnaryTerm {
+        op_ref: DataRef,
+        child_ref: NodeRef,
+    },
+    FuncCallExpr {
+        name_ref: NodeRef,
+        first_param_ref: NodeRef,
+    },
+    Param {
+        child_ref: NodeRef,
+        next_ref: NodeRef,
+    },
+    Stmt {
+        child_ref: NodeRef,
+        next_ref: NodeRef,
+    },
+    ExprStmt {
+        expr_ref: NodeRef,
+    },
+    AssignStmt {
+        name_ref: NodeRef,
+        expr_ref: NodeRef,
+    },
+    ReturnStmt {
+        expr_ref: NodeRef,
+    },
+    Block {
+        first_stmt_ref: NodeRef,
+    },
+    IfStmt {
+        cond_ref: NodeRef,
+        then_block_ref: NodeRef,
+        else_block_ref: NodeRef,
+    },
+    DoWhile {
+        do_expr_ref: NodeRef,
+        cond_ref: NodeRef,
+    },
     Type(NodeRef),
-    ArrayType { child_ref: NodeRef, length_ref: NodeRef },
-    TupleType { child_ref: NodeRef, next_ref: NodeRef },
-    GenericType { child_ref: NodeRef, next_ref: NodeRef },
-    TypeModifier { child_ref: NodeRef, modifier_ref: DataRef },
-    ErrorType { child_ref: NodeRef, error_ref: NodeRef },
-    ParamDecl { type_ref: NodeRef, name_ref: NodeRef, next_ref: NodeRef },
-    FuncDecl { type_ref: NodeRef, name_ref: NodeRef, params_ref: NodeRef },
-    FuncDef { func_decl_ref: NodeRef, block_ref: NodeRef },
+    ArrayType {
+        child_ref: NodeRef,
+        length_ref: NodeRef,
+    },
+    TupleType {
+        child_ref: NodeRef,
+        next_ref: NodeRef,
+    },
+    GenericType {
+        child_ref: NodeRef,
+        next_ref: NodeRef,
+    },
+    TypeModifier {
+        child_ref: NodeRef,
+        modifier_ref: DataRef,
+    },
+    ErrorType {
+        child_ref: NodeRef,
+        error_ref: NodeRef,
+    },
+    ParamDecl {
+        type_ref: NodeRef,
+        name_ref: NodeRef,
+        next_ref: NodeRef,
+    },
+    FuncDecl {
+        type_ref: NodeRef,
+        name_ref: NodeRef,
+        params_ref: NodeRef,
+    },
+    FuncDef {
+        func_decl_ref: NodeRef,
+        block_ref: NodeRef,
+    },
+    Annotated {
+        child_ref: NodeRef,
+        annotation: Annotation,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -55,13 +122,13 @@ pub struct Node {
 #[derive(Debug)]
 pub struct Ast {
     pub nodes: Vec<Node>,
-    pub datas: Vec<Data>
+    pub datas: Vec<Data>,
 }
 
 #[derive(Debug)]
 pub struct AstBuilder {
     pub ast: Ast,
-    checkpoints: Vec<(usize, usize)>
+    checkpoints: Vec<(usize, usize)>,
 }
 
 impl AstBuilder {
@@ -69,14 +136,15 @@ impl AstBuilder {
         Self {
             ast: Ast {
                 nodes: Vec::new(),
-                datas: Vec::new()
+                datas: Vec::new(),
             },
-            checkpoints: Vec::new()
+            checkpoints: Vec::new(),
         }
     }
 
     pub fn checkpoint(&mut self) {
-        self.checkpoints.push((self.ast.nodes.len(), self.ast.datas.len()));
+        self.checkpoints
+            .push((self.ast.nodes.len(), self.ast.datas.len()));
     }
 
     pub fn rollback<Err>(&mut self, err: Err) -> Result<(), Err> {
@@ -87,21 +155,26 @@ impl AstBuilder {
     }
 
     pub fn commit(&mut self) {
-        self.checkpoints.pop().or_else(|| panic!("No checkpoints to commit"));
+        self.checkpoints
+            .pop()
+            .or_else(|| panic!("No checkpoints to commit"));
     }
 
     /// It doesn't let you set the parent since the AST is built bottom up so at the step
-    /// that you call this function you don't know the parent 
+    /// that you call this function you don't know the parent
     pub fn push_node(&mut self, kind: NodeKind) -> NodeRef {
         let node_ref = NodeRef(self.ast.nodes.len());
-        self.ast.nodes.push(Node { kind, parent_ref: NodeRef::NULL });
+        self.ast.nodes.push(Node {
+            kind,
+            parent_ref: NodeRef::NULL,
+        });
 
         node_ref
     }
 
     pub fn set_parent(&mut self, child: NodeRef, parent_ref: NodeRef) {
         debug_assert!(child != NodeRef::NULL);
-        
+
         self.ast.nodes[child.0].parent_ref = parent_ref;
     }
 
@@ -127,14 +200,14 @@ impl AstBuilder {
 
     pub fn push_term(&mut self, child_ref: NodeRef) -> NodeRef {
         let node_ref = self.push_node(NodeKind::Term(child_ref));
-        self.set_parent(child_ref, node_ref); 
+        self.set_parent(child_ref, node_ref);
 
         node_ref
     }
 
     pub fn push_unary(&mut self, op_token: Token, child_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
-        
+
         let op_ref = self.push_data(Data::Token(op_token));
         let node_ref = self.push_node(NodeKind::UnaryTerm { op_ref, child_ref });
         self.set_parent(child_ref, node_ref);
@@ -142,11 +215,20 @@ impl AstBuilder {
         node_ref
     }
 
-    pub fn push_bin_expr(&mut self, left_ref: NodeRef, op_token: Token, right_ref: NodeRef) -> NodeRef {
+    pub fn push_bin_expr(
+        &mut self,
+        left_ref: NodeRef,
+        op_token: Token,
+        right_ref: NodeRef,
+    ) -> NodeRef {
         debug_assert!(right_ref != NodeRef::NULL && left_ref != NodeRef::NULL);
-        
+
         let op_ref = self.push_data(Data::Token(op_token));
-        let node_ref = self.push_node(NodeKind::BinExpr { left_ref, op_ref, right_ref });
+        let node_ref = self.push_node(NodeKind::BinExpr {
+            left_ref,
+            op_ref,
+            right_ref,
+        });
         self.set_parent(left_ref, node_ref);
         self.set_parent(right_ref, node_ref);
 
@@ -155,27 +237,37 @@ impl AstBuilder {
 
     pub fn push_func_call_arg(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
-        
-        let node_ref = self.push_node(NodeKind::Param { child_ref, next_ref });
+
+        let node_ref = self.push_node(NodeKind::Param {
+            child_ref,
+            next_ref,
+        });
         self.set_parent(child_ref, node_ref);
-        if next_ref != NodeRef::NULL { self.set_parent(next_ref, node_ref); }
+        if next_ref != NodeRef::NULL {
+            self.set_parent(next_ref, node_ref);
+        }
 
         node_ref
     }
 
     pub fn push_func_call(&mut self, name_ref: NodeRef, first_param_ref: NodeRef) -> NodeRef {
         debug_assert!(name_ref != NodeRef::NULL);
-        
-        let node_ref = self.push_node(NodeKind::FuncCallExpr { name_ref, first_param_ref });
+
+        let node_ref = self.push_node(NodeKind::FuncCallExpr {
+            name_ref,
+            first_param_ref,
+        });
         self.set_parent(name_ref, node_ref);
-        if first_param_ref != NodeRef::NULL { self.set_parent(first_param_ref, node_ref) }
+        if first_param_ref != NodeRef::NULL {
+            self.set_parent(first_param_ref, node_ref)
+        }
 
         node_ref
     }
 
     pub fn push_expr_stmt(&mut self, expr_ref: NodeRef) -> NodeRef {
         debug_assert!(expr_ref != NodeRef::NULL);
-        
+
         let node_ref = self.push_node(NodeKind::ExprStmt { expr_ref });
         self.set_parent(expr_ref, node_ref);
 
@@ -184,7 +276,7 @@ impl AstBuilder {
 
     pub fn push_assign_stmt(&mut self, name_ref: NodeRef, expr_ref: NodeRef) -> NodeRef {
         debug_assert!(name_ref != NodeRef::NULL && expr_ref != NodeRef::NULL);
-        
+
         let node_ref = self.push_node(NodeKind::AssignStmt { name_ref, expr_ref });
         self.set_parent(name_ref, node_ref);
         self.set_parent(expr_ref, node_ref);
@@ -199,17 +291,24 @@ impl AstBuilder {
     /// and always valid on the case of implicit return expression { stmt;* expr }
     pub fn push_return_stmt(&mut self, expr_ref: NodeRef) -> NodeRef {
         let node_ref = self.push_node(NodeKind::ReturnStmt { expr_ref });
-        if expr_ref != NodeRef::NULL { self.set_parent(expr_ref, node_ref) }
+        if expr_ref != NodeRef::NULL {
+            self.set_parent(expr_ref, node_ref)
+        }
 
         node_ref
     }
 
     pub fn push_stmt(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
-        
-        let node_ref = self.push_node(NodeKind::Stmt { child_ref, next_ref });
+
+        let node_ref = self.push_node(NodeKind::Stmt {
+            child_ref,
+            next_ref,
+        });
         self.set_parent(child_ref, node_ref);
-        if next_ref != NodeRef::NULL { self.set_parent(next_ref, node_ref); }
+        if next_ref != NodeRef::NULL {
+            self.set_parent(next_ref, node_ref);
+        }
 
         node_ref
     }
@@ -218,21 +317,34 @@ impl AstBuilder {
     ///
     /// # NOTE
     /// This block may be empty {} and that must trigger a warning (TODO) but its valid
-    /// syntax 
+    /// syntax
     pub fn push_block(&mut self, first_stmt_ref: NodeRef) -> NodeRef {
-        let node_ref = self.push_node(NodeKind::Block {  first_stmt_ref  });
-        if first_stmt_ref != NodeRef::NULL { self.set_parent(first_stmt_ref, node_ref); }
+        let node_ref = self.push_node(NodeKind::Block { first_stmt_ref });
+        if first_stmt_ref != NodeRef::NULL {
+            self.set_parent(first_stmt_ref, node_ref);
+        }
 
         node_ref
     }
 
-    pub fn push_if_stmt(&mut self, cond_ref: NodeRef, then_block_ref: NodeRef, else_block_ref: NodeRef) -> NodeRef {
+    pub fn push_if_stmt(
+        &mut self,
+        cond_ref: NodeRef,
+        then_block_ref: NodeRef,
+        else_block_ref: NodeRef,
+    ) -> NodeRef {
         debug_assert!(cond_ref != NodeRef::NULL && then_block_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::IfStmt { cond_ref, then_block_ref, else_block_ref });
+        let node_ref = self.push_node(NodeKind::IfStmt {
+            cond_ref,
+            then_block_ref,
+            else_block_ref,
+        });
         self.set_parent(cond_ref, node_ref);
         self.set_parent(then_block_ref, node_ref);
-        if else_block_ref != NodeRef::NULL { self.set_parent(else_block_ref, node_ref); }
+        if else_block_ref != NodeRef::NULL {
+            self.set_parent(else_block_ref, node_ref);
+        }
 
         node_ref
     }
@@ -240,8 +352,13 @@ impl AstBuilder {
     pub fn push_do_while(&mut self, do_expr_ref: NodeRef, cond_ref: NodeRef) -> NodeRef {
         debug_assert!(cond_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::DoWhile { do_expr_ref, cond_ref });
-        if do_expr_ref != NodeRef::NULL { self.set_parent(do_expr_ref, node_ref); }
+        let node_ref = self.push_node(NodeKind::DoWhile {
+            do_expr_ref,
+            cond_ref,
+        });
+        if do_expr_ref != NodeRef::NULL {
+            self.set_parent(do_expr_ref, node_ref);
+        }
         self.set_parent(cond_ref, node_ref);
 
         node_ref
@@ -249,7 +366,9 @@ impl AstBuilder {
 
     pub fn push_type(&mut self, child_ref: NodeRef) -> NodeRef {
         let node_ref = self.push_node(NodeKind::Type(child_ref));
-        if child_ref != NodeRef::NULL { self.set_parent(child_ref, node_ref); };
+        if child_ref != NodeRef::NULL {
+            self.set_parent(child_ref, node_ref);
+        };
 
         node_ref
     }
@@ -258,7 +377,10 @@ impl AstBuilder {
         debug_assert!(child_ref != NodeRef::NULL);
 
         let modifier_ref = self.push_data(Data::Token(token));
-        let node_ref = self.push_node(NodeKind::TypeModifier { child_ref, modifier_ref });
+        let node_ref = self.push_node(NodeKind::TypeModifier {
+            child_ref,
+            modifier_ref,
+        });
         self.set_parent(child_ref, node_ref);
 
         node_ref
@@ -267,7 +389,10 @@ impl AstBuilder {
     pub fn push_generic_type(&mut self, child_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::GenericType { child_ref, next_ref });
+        let node_ref = self.push_node(NodeKind::GenericType {
+            child_ref,
+            next_ref,
+        });
         self.set_parent(child_ref, node_ref);
         if next_ref != NodeRef::NULL {
             self.set_parent(next_ref, node_ref);
@@ -279,7 +404,10 @@ impl AstBuilder {
     pub fn push_array_type(&mut self, child_ref: NodeRef, length_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::ArrayType { child_ref, length_ref });
+        let node_ref = self.push_node(NodeKind::ArrayType {
+            child_ref,
+            length_ref,
+        });
         self.set_parent(child_ref, node_ref);
         if length_ref != NodeRef::NULL {
             self.set_parent(length_ref, node_ref);
@@ -293,7 +421,10 @@ impl AstBuilder {
             return NodeRef::NULL;
         }
 
-        let node_ref = self.push_node(NodeKind::TupleType { child_ref, next_ref });
+        let node_ref = self.push_node(NodeKind::TupleType {
+            child_ref,
+            next_ref,
+        });
         self.set_parent(child_ref, node_ref);
         if next_ref != NodeRef::NULL {
             self.set_parent(next_ref, node_ref);
@@ -305,31 +436,56 @@ impl AstBuilder {
     pub fn push_error_type(&mut self, child_ref: NodeRef, error_ref: NodeRef) -> NodeRef {
         debug_assert!(child_ref != NodeRef::NULL && error_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::ErrorType { child_ref, error_ref });
+        let node_ref = self.push_node(NodeKind::ErrorType {
+            child_ref,
+            error_ref,
+        });
         self.set_parent(child_ref, node_ref);
         self.set_parent(error_ref, node_ref);
 
         node_ref
     }
 
-    pub fn push_param_decl(&mut self, type_ref: NodeRef, name_ref: NodeRef, next_ref: NodeRef) -> NodeRef {
+    pub fn push_param_decl(
+        &mut self,
+        type_ref: NodeRef,
+        name_ref: NodeRef,
+        next_ref: NodeRef,
+    ) -> NodeRef {
         debug_assert!(type_ref != NodeRef::NULL && name_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::ParamDecl { type_ref, name_ref, next_ref });
+        let node_ref = self.push_node(NodeKind::ParamDecl {
+            type_ref,
+            name_ref,
+            next_ref,
+        });
         self.set_parent(type_ref, node_ref);
         self.set_parent(name_ref, node_ref);
-        if next_ref != NodeRef::NULL { self.set_parent(next_ref, node_ref); }
+        if next_ref != NodeRef::NULL {
+            self.set_parent(next_ref, node_ref);
+        }
 
         node_ref
     }
 
-    pub fn push_func_decl(&mut self, type_ref: NodeRef, name_ref: NodeRef, params_ref: NodeRef) -> NodeRef {
+    pub fn push_func_decl(
+        &mut self,
+        type_ref: NodeRef,
+        name_ref: NodeRef,
+        params_ref: NodeRef,
+    ) -> NodeRef {
         debug_assert!(type_ref != NodeRef::NULL && name_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::FuncDecl { type_ref, name_ref, params_ref });
+        let node_ref = self.push_node(NodeKind::FuncDecl {
+            type_ref,
+            name_ref,
+            params_ref,
+        });
         self.set_parent(type_ref, node_ref);
         self.set_parent(name_ref, node_ref);
-        if params_ref != NodeRef::NULL { self.set_parent(params_ref, node_ref); }
+        if params_ref != NodeRef::NULL {
+            self.set_parent(params_ref, node_ref);
+        }
 
         node_ref
     }
@@ -337,9 +493,24 @@ impl AstBuilder {
     pub fn push_func_def(&mut self, func_decl_ref: NodeRef, block_ref: NodeRef) -> NodeRef {
         debug_assert!(func_decl_ref != NodeRef::NULL && block_ref != NodeRef::NULL);
 
-        let node_ref = self.push_node(NodeKind::FuncDef { func_decl_ref, block_ref });
+        let node_ref = self.push_node(NodeKind::FuncDef {
+            func_decl_ref,
+            block_ref,
+        });
         self.set_parent(func_decl_ref, node_ref);
         self.set_parent(block_ref, node_ref);
+
+        node_ref
+    }
+
+    pub fn push_annotation(&mut self, child_ref: NodeRef, annotation: Annotation) -> NodeRef {
+        debug_assert!(child_ref != NodeRef::NULL);
+
+        let node_ref = self.push_node(NodeKind::Annotated {
+            child_ref,
+            annotation,
+        });
+        self.set_parent(child_ref, node_ref);
 
         node_ref
     }

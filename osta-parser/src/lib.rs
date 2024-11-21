@@ -11,15 +11,15 @@ macro_rules! fallible {
         {
             $builder.checkpoint();
             let mut lexer = $tokenizer.clone();
-            let defer = $func(&mut lexer, $builder$(, $arg)*).map_err(|err| {
+            let result = $func(&mut lexer, $builder$(, $arg)*).map_err(|err| {
                 $builder.rollback(&err).expect("rollback failed");
                 err
             });
-            if defer.is_ok() {
+            if result.is_ok() {
                 *$tokenizer = lexer;
                 $builder.commit();
             }
-            defer
+            result
         }
     };
 }

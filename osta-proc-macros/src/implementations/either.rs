@@ -35,24 +35,25 @@ use proc_macro::TokenStream;
 use quote::quote;
 
 pub fn impl_either_unwrap(input: TokenStream) -> TokenStream {
-    let n = syn::parse_macro_input!(input as syn::LitInt).base10_parse::<usize>().unwrap();
+    let n = syn::parse_macro_input!(input as syn::LitInt)
+        .base10_parse::<usize>()
+        .unwrap();
 
     let base_either = quote! { Either<T, T> };
 
-    let either_left = (0..n)
-        .fold(Vec::new(), |mut acc, i| {
-            let prev = if i == 0 { &base_either } else { &acc[i - 1] };
-            acc.push(quote! { Either<#prev, T> });
-            acc
-        });
-    let either_right = (0..n)
-        .fold(Vec::new(), |mut acc, i| {
-            let prev = if i == 0 { &base_either } else { &acc[i - 1] };
-            acc.push(quote! { Either<T, #prev> });
-            acc
-        });
+    let either_left = (0..n).fold(Vec::new(), |mut acc, i| {
+        let prev = if i == 0 { &base_either } else { &acc[i - 1] };
+        acc.push(quote! { Either<#prev, T> });
+        acc
+    });
+    let either_right = (0..n).fold(Vec::new(), |mut acc, i| {
+        let prev = if i == 0 { &base_either } else { &acc[i - 1] };
+        acc.push(quote! { Either<T, #prev> });
+        acc
+    });
 
-    let either_left = either_left.into_iter()
+    let either_left = either_left
+        .into_iter()
         .map(|either| {
             quote! {
                 impl<T> #either {
@@ -66,7 +67,8 @@ pub fn impl_either_unwrap(input: TokenStream) -> TokenStream {
             }
         })
         .collect::<Vec<_>>();
-    let either_right = either_right.into_iter()
+    let either_right = either_right
+        .into_iter()
         .map(|either| {
             quote! {
                 impl<T> #either {
@@ -96,4 +98,3 @@ pub fn impl_either_unwrap(input: TokenStream) -> TokenStream {
 
     output.into()
 }
-

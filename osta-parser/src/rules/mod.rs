@@ -9,21 +9,30 @@ pub mod tests {
     // Helper macros for tests
     macro_rules! int {
         () => {
-            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Integer, .. })
+            osta_ast::Data::Token(osta_lexer::Token {
+                kind: TokenKind::Integer,
+                ..
+            })
         };
     }
     pub(crate) use int;
 
     macro_rules! identifier {
         () => {
-            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Identifier, .. })
+            osta_ast::Data::Token(osta_lexer::Token {
+                kind: TokenKind::Identifier,
+                ..
+            })
         };
     }
     pub(crate) use identifier;
 
     macro_rules! asterisk {
         () => {
-            osta_ast::Data::Token(osta_lexer::Token { kind: TokenKind::Asterisk, .. })
+            osta_ast::Data::Token(osta_lexer::Token {
+                kind: TokenKind::Asterisk,
+                ..
+            })
         };
     }
     pub(crate) use asterisk;

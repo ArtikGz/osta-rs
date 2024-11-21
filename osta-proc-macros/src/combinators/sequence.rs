@@ -41,35 +41,44 @@ impl syn::parse::Parse for Sequence {
                 break;
             }
         }
-        Ok(Sequence { input_type, parsers })
+        Ok(Sequence {
+            input_type,
+            parsers,
+        })
     }
 }
 
 pub fn sequence(input: TokenStream) -> TokenStream {
-    let Sequence { input_type, parsers } = syn::parse_macro_input!(input as Sequence);
+    let Sequence {
+        input_type,
+        parsers,
+    } = syn::parse_macro_input!(input as Sequence);
 
     let len = parsers.len();
 
     if len == 0 {
         return quote! {
             compile_error!("sequence! requires at least one parser");
-        }.into();
+        }
+        .into();
     }
 
     let osta_parser_crate = crate_accessor("osta-func");
     let pair = quote! { #osta_parser_crate::combinators::fallible::foundational::pair };
 
     // pair(parser0, pair(parser1, ...))
-    let main_parser = parsers.into_iter()
-        .enumerate()
-        .rev()
-        .fold(quote! { _ }, |acc, (i, parser)| {
-            if i == len - 1 {
-                quote! { #parser }
-            } else {
-                quote! { #pair(#parser, #acc) }
-            }
-        });
+    let main_parser =
+        parsers
+            .into_iter()
+            .enumerate()
+            .rev()
+            .fold(quote! { _ }, |acc, (i, parser)| {
+                if i == len - 1 {
+                    quote! { #parser }
+                } else {
+                    quote! { #pair(#parser, #acc) }
+                }
+            });
 
     if len < 3 {
         return quote! { #main_parser }.into();
@@ -84,24 +93,22 @@ pub fn sequence(input: TokenStream) -> TokenStream {
         .collect::<Vec<_>>();
 
     // (output0, (output1, ...))
-    let recursive_view = outputs.iter()
-        .fold(quote! { _ }, |acc, (i, ident)| {
-            if *i == len - 1 {
-                quote! { #ident }
-            } else {
-                quote! { (#ident, #acc) }
-            }
-        });
+    let recursive_view = outputs.iter().fold(quote! { _ }, |acc, (i, ident)| {
+        if *i == len - 1 {
+            quote! { #ident }
+        } else {
+            quote! { (#ident, #acc) }
+        }
+    });
 
     // output0, output1, ...
-    let output_view = outputs.iter()
-        .fold(quote! { _ }, |acc, (i, ident)| {
-            if *i == len - 1 {
-                quote! { #ident }
-            } else {
-                quote! { #ident, #acc }
-            }
-        });
+    let output_view = outputs.iter().fold(quote! { _ }, |acc, (i, ident)| {
+        if *i == len - 1 {
+            quote! { #ident }
+        } else {
+            quote! { #ident, #acc }
+        }
+    });
 
     let output = quote! {{
         let parser = #main_parser;
